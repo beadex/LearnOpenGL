@@ -17,31 +17,59 @@ void processInput(GLFWwindow* window);
 int main()
 {
 	glfwInit();
+#ifdef USE_GLES
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+
+	// Qualcomm stated that the Adreno GPU will support GLES 3.2,
+	// but hinted that certain features of version 3.2 may not work.
+	// All versions below 3.2 will be supported.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+
+	// won't work
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	// use this instead (?)
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+	std::clog << "Target: OpenGL ES 3.1" << std::endl;
+#else
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-
+	std::clog << "Target: OpenGL 3.3 Desktop" << std::endl;
+#endif
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 
 	if (window == NULL) {
-		std::cout << "Failed to create GLFW window" << std::endl;
+		std::clog << "Failed to create GLFW window" << std::endl;
+		const char* description;
+		int code = glfwGetError(&description);
+		if (description) std::clog << "GLFW Error (" << code << "): " << description << std::endl;
+
 		glfwTerminate();
 		return -1;
 	}
 
 	glfwMakeContextCurrent(window);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
+#ifdef USE_GLES
+	if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
+		std::clog << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+#else
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::clog << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+#endif
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+#ifdef USE_GLES
+	Shader shader(FileSystem::getPath("resources/shaders/es/shader.vs").c_str(), FileSystem::getPath("resources/shaders/es/shader.fs").c_str());
+#else
 	Shader shader(FileSystem::getPath("resources/shaders/shader.vs").c_str(), FileSystem::getPath("resources/shaders/shader.fs").c_str());
-
+#endif
 	unsigned int texture1, texture2;
 	int width, height, nrChannels;
 
@@ -63,7 +91,7 @@ int main()
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
-		std::cout << "FAILED::TEXTURE::LOAD" << std::endl;
+		std::clog << "FAILED::TEXTURE::LOAD" << std::endl;
 	}
 
 	stbi_image_free(data);
@@ -84,7 +112,7 @@ int main()
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	else {
-		std::cout << "FAILED::TEXTURE::LOAD" << std::endl;
+		std::clog << "FAILED::TEXTURE::LOAD" << std::endl;
 	}
 	stbi_image_free(data);
 
