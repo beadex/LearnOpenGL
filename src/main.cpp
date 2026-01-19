@@ -8,22 +8,28 @@
 
 #include <learnopengl/shader.h>
 #include <learnopengl/filesystem.h>
+#include <learnopengl/camera.h>
 
 #include <iostream>
 
-const auto WINDOW_WIDTH = 800.0f;
-const auto WINDOW_HEIGHT = 600.0f;
+const auto WINDOW_WIDTH = 1600.0f;
+const auto WINDOW_HEIGHT = 900.0f;
 
-const auto CAMERA_FRONT = glm::vec3(0.0f, 0.0f, -1.0f);
-const auto CAMERA_UP = glm::vec3(0.0f, 1.0f, 0.0f);
-
-auto cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+// Timing
 auto deltaTime = 0.0f;
 auto lastFrame = 0.0f;
+
+// Camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+auto lastX = WINDOW_WIDTH / 2.0f;
+auto lastY = WINDOW_HEIGHT / 2.0f;
+auto firstMouse = true;
+auto fov = 45.0f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isKeyPressed(int key);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main()
 {
@@ -76,6 +82,8 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
 
 #ifdef USE_GLES
 	Shader shader(FileSystem::getPath("resources/shaders/es/shader.vs").c_str(), FileSystem::getPath("resources/shaders/es/shader.fs").c_str());
@@ -217,13 +225,13 @@ int main()
 
 	// projection matrix
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
+	projection = glm::perspective(glm::radians(fov), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f);
 	shader.setMat4("projection", projection);
 
 	while (!glfwWindowShouldClose(window)) {
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+		auto currentFrame = glfwGetTime();
+		deltaTime = float(currentFrame) - lastFrame;
+		lastFrame = float(currentFrame);
 
 		processInput(window);
 
@@ -237,11 +245,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		glBindVertexArray(VAO);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		glm::mat4 view;
-		view = glm::lookAt(cameraPos, cameraPos + CAMERA_FRONT, CAMERA_UP);
+		auto view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
 		for (unsigned int i = 0; i < 10; i++) {
@@ -273,25 +278,41 @@ void processInput(GLFWwindow* window) {
 		glfwSetWindowShouldClose(window, true);
 	}
 
-	auto cameraSpeed = 2.5f * deltaTime;
-
 	if (isKeyPressed(glfwGetKey(window, GLFW_KEY_W))) {
-		cameraPos += cameraSpeed * CAMERA_FRONT;
+		camera.MoveCamera(FORWARD, deltaTime);
 	}
 
 	if (isKeyPressed(glfwGetKey(window, GLFW_KEY_S))) {
-		cameraPos -= cameraSpeed * CAMERA_FRONT;
+		camera.MoveCamera(BACKWARD, deltaTime);
 	}
 
 	if (isKeyPressed(glfwGetKey(window, GLFW_KEY_A))) {
-		cameraPos -= glm::normalize(glm::cross(CAMERA_FRONT, CAMERA_UP)) * cameraSpeed;
+		camera.MoveCamera(LEFT, deltaTime);
 	}
 
 	if (isKeyPressed(glfwGetKey(window, GLFW_KEY_D))) {
-		cameraPos += glm::normalize(glm::cross(CAMERA_FRONT, CAMERA_UP)) * cameraSpeed;
+		camera.MoveCamera(RIGHT, deltaTime);
 	}
 }
 
 bool isKeyPressed(int key) {
 	return key == GLFW_PRESS;
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
+	auto xpos = float(xposIn);
+	auto ypos = float(yposIn);
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	auto xoffset = xpos - lastX;
+	auto yoffset = lastY - ypos;
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.CalculateCameraDirection(xoffset, yoffset);
 }
