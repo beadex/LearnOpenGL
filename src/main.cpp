@@ -176,7 +176,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		float radius = 2.0f;
-		float speed = 2.0f; // Adjust this to make it faster or slower
+		float speed = 0.5f; // Adjust this to make it faster or slower
 		float phaseTime = currentFrametime * speed;
 		
 		lightCubePos.x = cos(phaseTime) * radius;
@@ -186,6 +186,7 @@ int main()
 		objectShader.setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 		objectShader.setVec3("lightPos", lightCubePos);
 		objectShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		objectShader.setVec3("viewPos", camera.Position);
 
 		// projection matrix
 		glm::mat4 projection;
