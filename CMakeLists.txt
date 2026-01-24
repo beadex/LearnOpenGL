@@ -66,26 +66,50 @@ elseif (TARGET GLFW::GLFW)
 else()
   # 2) Try prebuilt libs in PROJECT_LIB_DIR (look for common filenames)
   if(USE_GLES)
-    if (EXISTS "${PROJECT_LIB_DIR}/arm64/glfw3.lib")
-        create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/arm64/glfw3.lib" "${PROJECT_INCLUDE_DIR}")
-        target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
-    elseif (EXISTS "${PROJECT_LIB_DIR}/arm64/glfw3dll_arm64.lib")
-        create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/arm64/glfw3dll_arm64.lib" "${PROJECT_INCLUDE_DIR}")
-        target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+    if (UNIX AND NOT APPLE)
+        if (EXISTS "${PROJECT_LIB_DIR}/arm64/libglfw3.a")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/arm64/libglfw3.a" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        else()
+            message(WARNING "GLFW not found via find_package and no arm64/libglfw3.a in ${PROJECT_LIB_DIR}. "
+                    "Either install GLFW via vcpkg or place the correct .a (matching architecture) into ${PROJECT_LIB_DIR}.")
+        endif()
+    elseif (WIN32)
+        if (EXISTS "${PROJECT_LIB_DIR}/arm64/glfw3.lib")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/arm64/glfw3.lib" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        elseif (EXISTS "${PROJECT_LIB_DIR}/arm64/glfw3dll.lib")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/arm64/glfw3dll.lib" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        else()
+            message(WARNING "GLFW not found via find_package and no arm64/glfw3.lib/glfw3dll.lib in ${PROJECT_LIB_DIR}. "
+                    "Either install GLFW via vcpkg or place the correct .lib (matching architecture) into ${PROJECT_LIB_DIR}.")
+        endif()
     else()
-        message(WARNING "GLFW not found via find_package and no arm64/glfw3.lib/glfw3dll.lib in ${PROJECT_LIB_DIR}. "
-                "Either install GLFW via vcpkg or place the correct .lib (matching architecture) into ${PROJECT_LIB_DIR}.")
+        message(WARNING "Unsupported platform")
     endif()
   else()
-    if (EXISTS "${PROJECT_LIB_DIR}/x64/glfw3.lib")
-        create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/x64/glfw3.lib" "${PROJECT_INCLUDE_DIR}")
-        target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
-    elseif (EXISTS "${PROJECT_LIB_DIR}/x64/glfw3dll.lib")
-        create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/x64/glfw3dll.lib" "${PROJECT_INCLUDE_DIR}")
-        target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
-    else()
-        message(WARNING "GLFW not found via find_package and no glfw3.lib/glfw3dll.lib in ${PROJECT_LIB_DIR}. "
+    if (UNIX AND NOT APPLE)
+        if (EXISTS "${PROJECT_LIB_DIR}/x64/libglfw3.a")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/x64/libglfw3.a" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        else()
+            message(WARNING "GLFW not found via find_package and no x64/libglfw3.a in ${PROJECT_LIB_DIR}. "
+                    "Either install GLFW via vcpkg or place the correct .a (matching architecture) into ${PROJECT_LIB_DIR}.")
+        endif()
+    elseif (WIN32)
+        if (EXISTS "${PROJECT_LIB_DIR}/x64/glfw3.lib")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/x64/glfw3.lib" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        elseif (EXISTS "${PROJECT_LIB_DIR}/x64/glfw3dll.lib")
+            create_imported_lib(GLFW3_prebuilt "${PROJECT_LIB_DIR}/x64/glfw3dll.lib" "${PROJECT_INCLUDE_DIR}")
+            target_link_libraries(LearnOpenGL PRIVATE GLFW3_prebuilt)
+        else()
+            message(WARNING "GLFW not found via find_package and no x64/glfw3.lib/glfw3dll.lib in ${PROJECT_LIB_DIR}. "
                     "Either install GLFW via vcpkg or place the correct .lib (matching architecture) into ${PROJECT_LIB_DIR}.")
+        endif()
+    else()
+        message(WARNING "Unsupported platform")
     endif()
   endif()
 endif()
@@ -110,11 +134,50 @@ else()
   message(STATUS "No prebuilt stb_image.lib found; ensure src/stb_image.cpp exists (defines STB_IMAGE_IMPLEMENTATION) or add library to ${PROJECT_LIB_DIR}")
 endif()
 
+# ImGui: if checked-out as submodule under includes/imgui, add sources and includes
+set(IMGUI_DIR "${PROJECT_INCLUDE_DIR}/imgui")
+if (EXISTS "${IMGUI_DIR}/imgui.h")
+  message(STATUS "Found ImGui in ${IMGUI_DIR} - adding sources and include directories")
+  # make imgui headers visible as #include "imgui.h"
+  target_include_directories(LearnOpenGL PRIVATE "${IMGUI_DIR}")
+
+  # Core ImGui sources (required)
+  target_sources(LearnOpenGL PRIVATE
+    "${IMGUI_DIR}/imgui.cpp"
+    "${IMGUI_DIR}/imgui_draw.cpp"
+    "${IMGUI_DIR}/imgui_tables.cpp"
+    "${IMGUI_DIR}/imgui_widgets.cpp"
+  )
+  # optional demo file
+  if (EXISTS "${IMGUI_DIR}/imgui_demo.cpp")
+    target_sources(LearnOpenGL PRIVATE "${IMGUI_DIR}/imgui_demo.cpp")
+  endif()
+
+  # Backends: common ones are in backends/ (GLFW + OpenGL3)
+  set(IMGUI_BACKENDS "${IMGUI_DIR}/backends")
+  if (EXISTS "${IMGUI_BACKENDS}/imgui_impl_glfw.cpp" AND EXISTS "${IMGUI_BACKENDS}/imgui_impl_opengl3.cpp")
+  message(STATUS "Found ImGui impl glfw and opengl3 in ${IMGUI_BACKENDS} - adding sources and include directories")
+    target_sources(LearnOpenGL PRIVATE
+      "${IMGUI_BACKENDS}/imgui_impl_glfw.cpp"
+      "${IMGUI_BACKENDS}/imgui_impl_opengl3.cpp"
+    )
+    # allow backend headers to find imgui.h via IMGUI_DIR
+    target_include_directories(LearnOpenGL PRIVATE "${IMGUI_BACKENDS}")
+  endif()
+
+  # If you're compiling glad.c locally, tell ImGui backend to use glad
+  if (EXISTS "${PROJECT_SOURCE_DIR}/src/glad.c")
+    target_compile_definitions(LearnOpenGL PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+  endif()
+else()
+  message(STATUS "ImGui not found in ${IMGUI_DIR} (skipping adding ImGui sources)")
+endif()
+
 # OpenGL (platform-provided) -- prefer target if available
 if(USE_GLES)
     find_path(GLES3_INCLUDE_DIR GLES3/gl32.h)
     find_path(EGL_INCLUDE_DIR EGL/egl.h)
-    
+
     find_library(EGL_LIBRARY NAMES libEGL EGL)
     find_library(GLES3_LIBRARY NAMES libGLESv2 GLESv2)
 
