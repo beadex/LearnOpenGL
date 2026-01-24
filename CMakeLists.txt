@@ -39,6 +39,16 @@ if (EXISTS "${PROJECT_SOURCE_DIR}/src/stb_image.cpp")
   message(STATUS "Added local src/stb_image.cpp (STB_IMAGE_IMPLEMENTATION) to LearnOpenGL target")
 endif()
 
+# On Linux (WSL/Ubuntu) prefer system GLFW headers if available so header/lib versions match.
+# This prevents picking up an in-repo glfw3.h (e.g. v3.4) while linking an older system lib (e.g. v3.3).
+if(UNIX AND NOT APPLE)
+  find_path(SYSTEM_GLFW_INCLUDE_DIR NAMES GLFW/glfw3.h PATHS /usr/include /usr/local/include)
+  if(SYSTEM_GLFW_INCLUDE_DIR)
+    message(STATUS "Found system GLFW headers in ${SYSTEM_GLFW_INCLUDE_DIR} - adding as SYSTEM include before project includes")
+    target_include_directories(LearnOpenGL PRIVATE SYSTEM ${SYSTEM_GLFW_INCLUDE_DIR})
+  endif()
+endif()
+
 # Add include folder to the target's include path
 target_include_directories(LearnOpenGL PRIVATE "${PROJECT_INCLUDE_DIR}")
 
@@ -153,7 +163,7 @@ endif()
 if(USE_GLES)
     find_path(GLES3_INCLUDE_DIR GLES3/gl32.h)
     find_path(EGL_INCLUDE_DIR EGL/egl.h)
-    
+
     find_library(EGL_LIBRARY NAMES libEGL EGL)
     find_library(GLES3_LIBRARY NAMES libGLESv2 GLESv2)
 

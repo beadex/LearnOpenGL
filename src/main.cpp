@@ -19,7 +19,7 @@
 
 const auto WINDOW_WIDTH = 1600.0f;
 const auto WINDOW_HEIGHT = 900.0f;
-glm::vec4 clearColor(0.0f, 0.0f, 0.0f, 1.00f);
+glm::vec4 clearColor(0.5f, 0.5f, 0.5f, 1.00f);
 
 // Timing
 auto deltaTime = 0.0f;
@@ -66,7 +66,7 @@ int main()
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	// use this instead (?)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	std::clog << "Target: OpenGL ES 3.1" << std::endl;
+	std::clog << "Target: OpenGL ES 3.0" << std::endl;
 #else
 	const char* glsl_version = "#version 330 core";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -76,7 +76,7 @@ int main()
 #endif
 
 	float mainScale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
-	GLFWwindow* window = glfwCreateWindow(int(WINDOW_WIDTH * mainScale), int(WINDOW_HEIGHT * mainScale), "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(int(WINDOW_WIDTH * mainScale), int(WINDOW_HEIGHT * mainScale), "OpenGL", NULL, NULL);
 
 	if (window == NULL) {
 		std::clog << "Failed to create GLFW window" << std::endl;
