@@ -55,6 +55,29 @@ function(create_imported_lib target_name lib_path include_dir)
   endif()
 endfunction()
 
+# Helper: create an IMPORTED shared target for DLL/.lib pairs (works if you copied only the .dll as well)
+function(create_imported_shared target_name dll_path lib_path include_dir)
+  if (EXISTS "${dll_path}" OR EXISTS "${lib_path}")
+    add_library(${target_name} SHARED IMPORTED)
+    set_property(TARGET ${target_name} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${include_dir}")
+    if (EXISTS "${lib_path}")
+      # import library available (preferred for linking on MSVC)
+      set_target_properties(${target_name} PROPERTIES
+        IMPORTED_IMPLIB "${lib_path}"
+        IMPORTED_LOCATION "${dll_path}"
+      )
+      message(STATUS "Created imported shared target ${target_name} -> implib:${lib_path} dll:${dll_path}")
+    else()
+      # only DLL present — set IMPORTED_LOCATION so runtime copy is known; linking may still require an import lib on MSVC
+      set_target_properties(${target_name} PROPERTIES
+        IMPORTED_LOCATION "${dll_path}"
+      )
+      message(STATUS "Created imported shared target ${target_name} -> dll:${dll_path} (no import lib found)")
+    endif()
+    return()
+  endif()
+endfunction()
+
 # 1) Try find_package for GLFW (preferred when using vcpkg or package config)
 find_package(glfw3 CONFIG QUIET)
 if (TARGET glfw)
@@ -132,6 +155,22 @@ if (EXISTS "${PROJECT_LIB_DIR}/stb_image.lib")
   target_link_libraries(LearnOpenGL PRIVATE StbImage_prebuilt)
 else()
   message(STATUS "No prebuilt stb_image.lib found; ensure src/stb_image.cpp exists (defines STB_IMAGE_IMPLEMENTATION) or add library to ${PROJECT_LIB_DIR}")
+endif()
+
+# Assimp: prefer import library (.lib) if present, otherwise allow using a .dll in the lib dir.
+# Place headers under ${PROJECT_INCLUDE_DIR}/assimp and the .dll/.lib into ${PROJECT_LIB_DIR}
+set(ASSIMP_DLL "${PROJECT_LIB_DIR}/assimp.dll")
+set(ASSIMP_LIB "${PROJECT_LIB_DIR}/assimp.lib")
+set(ASSIMP_INCLUDE_DIR "${PROJECT_INCLUDE_DIR}/assimp")
+
+if (EXISTS "${ASSIMP_LIB}")
+  create_imported_shared(Assimp_prebuilt "${ASSIMP_DLL}" "${ASSIMP_LIB}" "${ASSIMP_INCLUDE_DIR}")
+  target_link_libraries(LearnOpenGL PRIVATE Assimp_prebuilt)
+elseif (EXISTS "${ASSIMP_DLL}")
+  create_imported_shared(Assimp_prebuilt "${ASSIMP_DLL}" "" "${ASSIMP_INCLUDE_DIR}")
+  target_link_libraries(LearnOpenGL PRIVATE Assimp_prebuilt)
+else()
+  message(STATUS "Assimp not found in ${PROJECT_LIB_DIR}. Place assimp.dll and/or assimp.lib in ${PROJECT_LIB_DIR} and headers in ${PROJECT_INCLUDE_DIR}/assimp")
 endif()
 
 # ImGui: if checked-out as submodule under includes/imgui, add sources and includes
