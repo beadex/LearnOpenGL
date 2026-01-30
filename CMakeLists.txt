@@ -9,6 +9,8 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+
 project (LearnOpenGL LANGUAGES C CXX)
 
 option(USE_GLES "Build for OpenGL ES (Snapdragon/Mobile)" OFF)
@@ -27,7 +29,7 @@ set(PROJECT_LIB_DIR     "${PROJECT_SOURCE_DIR}/lib"      CACHE PATH "Project lib
 # Add source to this project's executable.
 add_executable (LearnOpenGL "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
-# If a local glad.c exists add it to the target sources so you don't need a separate target
+# If a local glad.c exists add it to the targe  t sources so you don't need a separate target
 if (EXISTS "${PROJECT_SOURCE_DIR}/src/glad.c")
   target_sources(LearnOpenGL PRIVATE "${PROJECT_SOURCE_DIR}/src/glad.c")
   message(STATUS "Added local src/glad.c to LearnOpenGL target")

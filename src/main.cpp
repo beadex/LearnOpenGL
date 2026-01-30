@@ -188,11 +188,6 @@ int main()
 
 			ImGui::ColorEdit3("Clear Color", &clearColor.x);
 
-			ImGui::ColorEdit3("Light Color 1", &lightColors[0].x);
-			ImGui::ColorEdit3("Light Color 2", &lightColors[1].x);
-			ImGui::ColorEdit3("Light Color 3", &lightColors[2].x);
-			ImGui::ColorEdit3("Light Color 4", &lightColors[3].x);
-
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
 			if (ImGui::Button("Quit")) {
