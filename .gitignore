@@ -105,6 +105,9 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+# Keep 3D Model obj file
+!resources/models/**
+
 # Chutzpah Test files
 _Chutzpah*
 
