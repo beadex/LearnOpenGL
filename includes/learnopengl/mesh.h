@@ -14,12 +14,13 @@ using namespace std;
 struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Normal;
-	glm::vec3 TexCoords;
+	glm::vec2 TexCoords;
 };
 
 struct Texture {
 	unsigned int id;
 	string type;
+	string path;
 };
 
 class Mesh {
@@ -47,10 +48,10 @@ public:
 			string name = textures[i].type;
 
 			if (name == "texture_diffuse") {
-				number = std::to_string(diffuseNr++);
+				number = to_string(diffuseNr++);
 			}
 			else if (name == "texture_specular") {
-				number = std::to_string(specularNr++);
+				number = to_string(specularNr++);
 			}
 
 			shader.setInt(("material." + name + number).c_str(), i);

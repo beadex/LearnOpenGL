@@ -368,3 +368,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# CMake
+build/
+out/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+*.cmake
