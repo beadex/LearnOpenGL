@@ -24,20 +24,26 @@ endif()
 
 # Allow overriding include/lib dirs from the CLI or GUI
 set(PROJECT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/includes" CACHE PATH "Project include directory")
-set(PROJECT_LIB_DIR     "${PROJECT_SOURCE_DIR}/lib"      CACHE PATH "Project lib directory")
+set(PROJECT_SRC_DIR "${PROJECT_SOURCE_DIR}/src" CACHE PATH "Project source code directory")
 
 # Add source to this project's executable.
-add_executable (LearnOpenGL "${PROJECT_SOURCE_DIR}/src/main.cpp")
+add_executable (LearnOpenGL WIN32 "${PROJECT_SRC_DIR}/main.cpp")
+
+if(MSVC)
+    set_target_properties(LearnOpenGL PROPERTIES 
+        LINK_FLAGS "/ENTRY:mainCRTStartup"
+    )
+endif()
 
 # If a local glad.c exists add it to the targe  t sources so you don't need a separate target
-if (EXISTS "${PROJECT_SOURCE_DIR}/src/glad.c")
-  target_sources(LearnOpenGL PRIVATE "${PROJECT_SOURCE_DIR}/src/glad.c")
+if (EXISTS "${PROJECT_SRC_DIR}/glad.c")
+  target_sources(LearnOpenGL PRIVATE "${PROJECT_SRC_DIR}/glad.c")
   message(STATUS "Added local src/glad.c to LearnOpenGL target")
 endif()
 
 # If a local stb implementation file exists (or we create one) add it
-if (EXISTS "${PROJECT_SOURCE_DIR}/src/stb_image.cpp")
-  target_sources(LearnOpenGL PRIVATE "${PROJECT_SOURCE_DIR}/src/stb_image.cpp")
+if (EXISTS "${PROJECT_SRC_DIR}/stb_image.cpp")
+  target_sources(LearnOpenGL PRIVATE "${PROJECT_SRC_DIR}/stb_image.cpp")
   message(STATUS "Added local src/stb_image.cpp (STB_IMAGE_IMPLEMENTATION) to LearnOpenGL target")
 endif()
 
@@ -82,7 +88,7 @@ if (EXISTS "${IMGUI_DIR}/imgui.h")
   endif()
 
   # If you're compiling glad.c locally, tell ImGui backend to use glad
-  if (EXISTS "${PROJECT_SOURCE_DIR}/src/glad.c")
+  if (EXISTS "${PROJECT_SRC_DIR}/glad.c")
     target_compile_definitions(LearnOpenGL PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
   endif()
 else()
@@ -121,4 +127,3 @@ set_target_properties(LearnOpenGL PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIR
 
 # Helpful status output
 message(STATUS "PROJECT_INCLUDE_DIR = ${PROJECT_INCLUDE_DIR}")
-message(STATUS "PROJECT_LIB_DIR     = ${PROJECT_LIB_DIR}")
