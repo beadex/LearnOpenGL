@@ -81,11 +81,14 @@ private:
 
 			vertex.Position = vector;
 
-			vector.x = mesh->mNormals[i].x;
-			vector.y = mesh->mNormals[i].y;
-			vector.z = mesh->mNormals[i].z;
+			if (mesh->HasNormals())
+			{
+				vector.x = mesh->mNormals[i].x;
+				vector.y = mesh->mNormals[i].y;
+				vector.z = mesh->mNormals[i].z;
 
-			vertex.Normal = vector;
+				vertex.Normal = vector;
+			}
 
 			if (mesh->mTextureCoords[0]) {
 				glm::vec2 vec;
@@ -142,6 +145,7 @@ private:
 				texture.type = typeName;
 				texture.path = str.C_Str();
 				textures.push_back(texture);
+				textures_loaded.push_back(texture);
 			}
 		}
 
