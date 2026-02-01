@@ -17,8 +17,8 @@
 
 #include <iostream>
 
-const auto WINDOW_WIDTH = 1600.0f;
-const auto WINDOW_HEIGHT = 900.0f;
+const auto WINDOW_WIDTH = 800.0f;
+const auto WINDOW_HEIGHT = 600.0f;
 glm::vec4 clearColor(0.05f, 0.05f, 0.05f, 1.00f);
 
 // Timing
@@ -48,7 +48,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isKeyPressed(int key);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-unsigned int loadTexture(const char* path);
 
 int main()
 {
