@@ -141,7 +141,7 @@ int main()
 	Shader shader(FileSystem::getPath("resources/shaders/model_loading_shader.vs").c_str(), FileSystem::getPath("resources/shaders/model_loading_shader.fs").c_str());
 #endif
 
-	Model theModel(FileSystem::getPath("resources/models/backpack/backpack.obj"));
+	Model theModel(FileSystem::getPath("resources/models/Sponza/sponza.obj"));
 
 	while (!glfwWindowShouldClose(window)) {
 		auto currentFrametime = glfwGetTime();
@@ -164,7 +164,7 @@ int main()
 
 		auto model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));
 
 		shader.setMat4("model", model);
 		theModel.Draw(shader);
